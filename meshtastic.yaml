@@ -1,0 +1,175 @@
+#HT-CT62, ESP32C3 + SX1262 LoRa Node
+esphome:
+  name: esphome-meshtastic
+  friendly_name: esphome-meshtastic
+
+esp32:
+  board: esp32-c3-devkitm-1
+  framework:
+    type: esp-idf
+
+logger:
+  level: VERBOSE
+  hardware_uart: UART0
+
+api:
+  encryption:
+    key: !secret api_encryption_key
+
+ota:
+  - platform: esphome
+    password: !secret ota_password
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  use_address: 10.21.3.112
+
+web_server:
+
+external_components:
+  - source: github://Andrik45719/esphome-meshtastic@main
+    components: [meshtastic]
+    refresh: 60s
+
+time:
+  - platform: sntp
+
+spi:
+  clk_pin: GPIO10
+  mosi_pin: GPIO7
+  miso_pin: GPIO6
+
+#LONG_FAST
+# bw 250
+# cr 5
+# sf 11
+
+sx126x:
+  id: id_lora
+  dio1_pin: GPIO3
+  cs_pin: GPIO8
+  busy_pin: GPIO4
+  rst_pin: GPIO5
+  pa_power: 22
+  bandwidth: 250_0kHz
+  crc_enable: true
+  frequency: 433125000
+  modulation: LORA
+  hw_version: sx1262
+  rf_switch: false
+  rx_start: true
+  sync_value: [0x20, 0xb0]
+  preamble_size: 16
+  spreading_factor: 11
+  coding_rate: CR_4_5
+  tcxo_voltage: 1_8V
+  tcxo_delay: 5ms    
+
+meshtastic:
+  - id: id_mesh_udp_only
+    udp:
+#       addresses:
+#         - 10.0.0.123 #direct connection
+#       multicast_address: 225.0.0.69
+
+    on_packet:
+      then:
+        - lambda: |-
+            ESP_LOGD("mesh_udp", "on_packet from %08X to %08X port %d %s", from, to, portnum, format_hex(data).c_str());
+
+    channels:
+      - name: LongFast
+        psk: "XOLPZHTWzHgykJxZ3pnj10mMJdr8glgblsNGLUIvd1w="
+      - name: KyivUA
+        psk: "cmF4UzVWbnZWQ0xxZlFyZXBSb2xhaHRNSkI1bFhabzU="
+
+  - id: id_mesh
+    exclude_pki: false #disable private messages
+
+    lora: id_lora
+    hw_model: 39 #meshtastic_HardwareModel_DIY_V1
+
+#    udp:
+#       addresses:
+#         - 10.0.0.123
+#       multicast_address: 224.0.0.69
+#       bridge_mode: false #enable lora<->udp bridge
+
+    position:
+      latitude: 50.45000
+      longitude: 30.52333
+      altitude: 179
+      broadcast_interval: 3h
+
+    hop_limit: 3
+    ignore_mqtt: true
+    ok_to_mqtt: false
+
+    channels:
+      - name: LongFast
+        psk: "XOLPZHTWzHgykJxZ3pnj10mMJdr8glgblsNGLUIvd1w="
+      - name: KyivUA
+        psk: "cmF4UzVWbnZWQ0xxZlFyZXBSb2xhaHRNSkI1bFhabzU="
+      - name: 128bit
+        psk: "VnJrMVV1T1h2Q3VuTWd1Wg=="
+      - name: 8bit
+        psk: "AQ=="
+
+    nodes:
+      - node_number: 0 #0 - this node
+        name: ESPHome
+        short_name: ESPH
+        private_key: !secret node_private_key
+        public_key: "jFziL4t8Row7LM+xIp6jpg5Ar/Idf6Kp0cHtl/qc0TI="
+        broadcast_interval: 3h
+      - node_number: 848894052
+        name: Andrik
+        public_key: "Pi1luH1RJ+NQeuj3CQQq4kbUsiYc6s6O84JOjMlEAww="
+
+    on_packet:
+      then:
+        - lambda: |-
+            ESP_LOGD("id_mesh", "on_packet from %08X to %08X port %d %s", from, to, portnum, format_hex(data).c_str());
+            if (portnum == meshtastic_PortNum_TEXT_MESSAGE_APP) {
+            }
+
+button:
+  - platform: template
+    name: "Send message to channel"
+    on_press:
+      then:
+        - meshtastic.send_text_message:
+            id: id_mesh
+            text: !lambda 'return "Channel: Hello world!!! " + std::to_string(::time(nullptr));'
+            channel: LongFast
+
+  - platform: template
+    name: "Send direct message"
+    on_press:
+      then:
+        - meshtastic.send_text_message:
+            id: id_mesh
+            text: !lambda 'return "Direct: Hello node!!! " + std::to_string(::time(nullptr));'
+            to: 848894052
+
+#packet_transport:
+#  - platform: meshtastic
+#    meshtastic_id: id_mesh
+#    binary_sensors:
+#      - id_user_btn
+#    hop_limit: 1
+#    update_interval: 30min
+
+binary_sensor:
+  - platform: gpio
+    id: id_user_btn
+    pin: GPIO9
+    name: "User button"
+
+#  - platform: packet_transport
+#    provider: remote-provider
+#    remote_id: id_button
+#    internal: false
+#    name: "Remote button"
