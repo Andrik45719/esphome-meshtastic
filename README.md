@@ -5,6 +5,9 @@
 
 A powerful ESPHome component that enables integration of [Meshtastic](https://meshtastic.org/)-compatible LoRa devices with ESPHome, allowing you to create mesh networking IoT devices with text messaging, packet routing, and mesh coordination capabilities.
 
+
+[![asciicast](https://asciinema.org/a/1041922.svg)](https://asciinema.org/a/1041922)
+
 ## What It Does
 
 This component transforms your ESP32 microcontroller into a full-featured Meshtastic mesh node. It provides:
