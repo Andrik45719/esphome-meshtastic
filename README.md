@@ -1,6 +1,5 @@
 # ESPHome Meshtastic Component
 
-![License](https://img.shields.io/badge/license-MIT-blue)
 ![Platform](https://img.shields.io/badge/platform-ESPHome-green)
 
 A powerful ESPHome component that enables integration of [Meshtastic](https://meshtastic.org/)-compatible LoRa devices with ESPHome, allowing you to create mesh networking IoT devices with text messaging, packet routing, and mesh coordination capabilities.
@@ -380,10 +379,6 @@ Contributions are welcome! To contribute:
 - **ESPHome Documentation**: https://esphome.io/
 - **GitHub Issues**: Report bugs or request features on [GitHub](https://github.com/Andrik45719/esphome-meshtastic/issues)
 - **Meshtastic Discord**: Join the community at https://discord.gg/g9Hgv9KX (Meshtastic community)
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## Maintainer
 
