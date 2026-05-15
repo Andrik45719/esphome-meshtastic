@@ -1,4 +1,7 @@
 #HT-CT62, ESP32C3 + SX1262 LoRa Node
+#https://heltec.org/project/ht-ct62/
+#https://heltec.org/project/esp-dev-backplane/
+
 esphome:
   name: esphome-meshtastic
   friendly_name: esphome-meshtastic
