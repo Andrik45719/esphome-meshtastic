@@ -446,6 +446,10 @@ bool Meshtastic::transmit_radio_packet(meshtastic_MeshPacket *mp) {
   radio_buffer.header.flags = mp->hop_limit | (mp->want_ack ? PACKET_FLAGS_WANT_ACK_MASK : 0) | (mp->via_mqtt ? PACKET_FLAGS_VIA_MQTT_MASK : 0);
   radio_buffer.header.flags |= (mp->hop_start << PACKET_FLAGS_HOP_START_SHIFT) & PACKET_FLAGS_HOP_START_MASK;
 
+  if (mp->encrypted.size > sizeof(radio_buffer.payload)) {
+    ESP_LOGE(TAG, "Encrypted payload too large: %u > %u", mp->encrypted.size, sizeof(radio_buffer.payload));
+    return false;
+  }
   memcpy(radio_buffer.payload, mp->encrypted.bytes, mp->encrypted.size);
   std::vector<uint8_t> packet(reinterpret_cast<const uint8_t*>(&radio_buffer), reinterpret_cast<const uint8_t*>(&radio_buffer) + sizeof(PacketHeader) + mp->encrypted.size);
 
