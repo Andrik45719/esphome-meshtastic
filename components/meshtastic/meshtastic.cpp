@@ -1,12 +1,17 @@
 #include "esphome/core/log.h"
 #include "esphome/core/application.h"
+#if __has_include("esphome/core/alloc_helpers.h")
+#include "esphome/core/alloc_helpers.h"  // format_hex_pretty() moved here in ESPHome 2026.x
+#endif
 #include "esphome/components/network/util.h"
 
 #include "meshtastic.h"
 
 #include <pb_decode.h>
 #include <pb_encode.h>
+#ifdef USE_WIFI
 #include <esp_wifi.h>
+#endif
 
 #if !defined(USE_HOST)
 #define MBEDTLS_AES_ALT
@@ -263,7 +268,9 @@ void Meshtastic::setup() {
 
 #if defined(USE_SOCKET_IMPL_BSD_SOCKETS) || defined(USE_SOCKET_IMPL_LWIP_SOCKETS)
   if(this->use_udp_) {
-    esp_wifi_set_ps(WIFI_PS_NONE);
+#ifdef USE_WIFI
+    esp_wifi_set_ps(WIFI_PS_NONE);  // modem sleep drops multicast
+#endif
 
     //ip_addr_ismulticast(&ip_addr_);
 
